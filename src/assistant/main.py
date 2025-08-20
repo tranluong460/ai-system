@@ -85,6 +85,9 @@ class SmartAssistant:
         # Set user name if available
         if self.ai_core.user_profile.name != "User":
             self.ui.set_user_name(self.ai_core.user_profile.name)
+        
+        # Set assistant name from AI core
+        self.ui.set_assistant_name(self.ai_core.get_assistant_name())
     
     def _show_welcome(self):
         """Hiển thị welcome screen với UI mới"""
@@ -194,6 +197,17 @@ Hãy phản hồi một cách tự nhiên về kết quả này.
                 self.ui.display_error("Vui lòng nhập tên. VD: /name John")
             return True
         
+        elif cmd.startswith('/ainame '):
+            ai_name = user_input[8:].strip()
+            if ai_name:
+                # Set name in both AI core and UI
+                self.ai_core.set_assistant_name(ai_name)
+                self.ui.set_assistant_name(ai_name)
+                self.ui.display_success(f"Tôi giờ tên là {ai_name}!")
+            else:
+                self.ui.display_error("Vui lòng nhập tên cho AI. VD: /ainame Leo")
+            return True
+        
         elif cmd.startswith('/feedback '):
             self._handle_feedback(user_input[10:])
             return True
@@ -265,7 +279,8 @@ TRO CHUYEN:
   • Toi se hoc tu phan hoi cua ban
 
 LENH DAC BIET:
-  • /name <ten> - Dat ten
+  • /name <ten> - Dat ten ban
+  • /ainame <ten> - Dat ten cho AI
   • /feedback <1-5> <comment> - Danh gia
   • /stats - Xem thong ke
   • /safe - Che do an toan

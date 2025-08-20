@@ -58,6 +58,7 @@ class AIAssistant:
         self.memory_file = "data/memory/conversations.json"
         self.profile_file = "data/memory/user_profile.json"
         self.learning_file = "data/memory/learning_data.json"
+        self.assistant_name = "AI Assistant"  # Default name
         
         # Khởi tạo thư mục
         os.makedirs(os.path.dirname(self.memory_file), exist_ok=True)
@@ -66,6 +67,9 @@ class AIAssistant:
         self.conversations = self._load_conversations()
         self.user_profile = self._load_user_profile()
         self.learning_data = self._load_learning_data()
+        
+        # Load assistant name from profile
+        self._load_assistant_name()
         
         # Initialize Enhanced Memory System
         safe_print("Initializing Enhanced Memory...", "Initializing Enhanced Memory...")
@@ -108,10 +112,23 @@ class AIAssistant:
     def _save_user_profile(self):
         """Lưu profile người dùng"""
         try:
+            # Include assistant name in profile
+            profile_data = asdict(self.user_profile)
+            profile_data['assistant_name'] = self.assistant_name
             with open(self.profile_file, 'w', encoding='utf-8') as f:
-                json.dump(asdict(self.user_profile), f, ensure_ascii=False, indent=2)
+                json.dump(profile_data, f, ensure_ascii=False, indent=2)
         except Exception as e:
             print(f"Loi save profile: {e}")
+    
+    def _load_assistant_name(self):
+        """Load assistant name from profile"""
+        if os.path.exists(self.profile_file):
+            try:
+                with open(self.profile_file, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                    self.assistant_name = data.get('assistant_name', 'AI Assistant')
+            except Exception as e:
+                print(f"Loi load assistant name: {e}")
     
     def _load_learning_data(self) -> Dict[str, Any]:
         """Load dữ liệu học tập"""
@@ -139,7 +156,7 @@ class AIAssistant:
     
     def _build_system_prompt(self) -> str:
         """Xây dựng system prompt dựa trên profile và learning data"""
-        base_prompt = """Bạn là AI Assistant thông minh, hỗ trợ người dùng các tác vụ trên máy tính.
+        base_prompt = f"""Bạn là {self.assistant_name}, một AI Assistant thông minh hỗ trợ người dùng các tác vụ trên máy tính.
 
 Khả năng của bạn:
 - Tương tác và trò chuyện tự nhiên
@@ -155,8 +172,9 @@ Quy tắc:
 - Cá nhân hóa dựa trên sở thích người dùng"""
 
         # Thêm thông tin cá nhân hóa
+        base_prompt += f"\n\nTên của bạn: {self.assistant_name}"
         if self.user_profile.name != "User":
-            base_prompt += f"\n\nTên người dùng: {self.user_profile.name}"
+            base_prompt += f"\nTên người dùng: {self.user_profile.name}"
         
         if self.user_profile.common_tasks:
             tasks = ", ".join(self.user_profile.common_tasks[:5])
@@ -367,6 +385,17 @@ User question: {user_input}"""
         self._save_user_profile()
         self.system_prompt = self._build_system_prompt()  # Rebuild prompt
         print(f"Da dat ten: {name}")
+    
+    def set_assistant_name(self, name: str):
+        """Đặt tên cho AI assistant"""
+        self.assistant_name = name
+        self._save_user_profile()
+        self.system_prompt = self._build_system_prompt()  # Rebuild prompt
+        print(f"AI da doi ten thanh: {name}")
+    
+    def get_assistant_name(self) -> str:
+        """Lấy tên AI assistant"""
+        return self.assistant_name
     
     def check_ollama_connection(self) -> bool:
         """Kiểm tra kết nối Ollama"""

@@ -55,8 +55,9 @@ class ChatMessage:
 class ModernChatUI:
     """Modern, beautiful chat interface for AI Assistant"""
     
-    def __init__(self, user_name: str = "Người dùng"):
+    def __init__(self, user_name: str = "Người dùng", assistant_name: str = "AI Assistant"):
         self.user_name = user_name
+        self.assistant_name = assistant_name
         self.chat_history: List[ChatMessage] = []
         self.terminal_width = self._get_terminal_width()
         self.setup_colors()
@@ -180,7 +181,7 @@ class ModernChatUI:
         self.safe_print("")
         
         # Assistant header
-        header = f"🤖 AI Assistant {timestamp}"
+        header = f"🤖 {self.assistant_name} {timestamp}"
         self.safe_print(f"┌─ {header}", Colors.BRIGHT_GREEN)
         
         # Message content
@@ -237,11 +238,11 @@ class ModernChatUI:
     def show_typing_indicator(self, duration: float = 1.0):
         """Show typing indicator animation"""
         self.safe_print("")
-        self.safe_print("🤖 AI Assistant đang suy nghĩ", Colors.BRIGHT_GREEN, end="")
+        self.safe_print(f"🤖 {self.assistant_name} đang suy nghĩ", Colors.BRIGHT_GREEN, end="")
         
         for i in range(int(duration * 4)):
             dots = "." * ((i % 3) + 1) + " " * (3 - (i % 3))
-            self.safe_print(f"\r🤖 AI Assistant đang suy nghĩ{dots}", Colors.BRIGHT_GREEN, end="")
+            self.safe_print(f"\r🤖 {self.assistant_name} đang suy nghĩ{dots}", Colors.BRIGHT_GREEN, end="")
             time.sleep(0.25)
         
         self.safe_print("\r" + " " * 50 + "\r", end="")  # Clear line
@@ -286,6 +287,7 @@ class ModernChatUI:
             ("/help", "Hiển thị hướng dẫn chi tiết"),
             ("/stats", "Xem thống kê sử dụng"),
             ("/name <tên>", "Đặt tên của bạn"),
+            ("/ainame <tên>", "Đặt tên cho AI"),
             ("/feedback <1-5> <nhận xét>", "Đánh giá phản hồi"),
             ("/tools", "Xem danh sách công cụ"),
             ("/clear", "Xóa màn hình chat"),
@@ -326,6 +328,7 @@ class ModernChatUI:
                 "/help - Hướng dẫn này",
                 "/stats - Thống kê sử dụng",
                 "/name <tên> - Đặt tên bạn",
+                "/ainame <tên> - Đặt tên cho AI",
                 "/feedback 5 Rất tốt! - Đánh giá",
                 "/tools - Xem công cụ có sẵn",
                 "/clear - Xóa màn hình",
@@ -418,6 +421,12 @@ class ModernChatUI:
         old_name = self.user_name
         self.user_name = name
         self.safe_print(f"✅ Đã đổi tên từ '{old_name}' thành '{name}'", Colors.BRIGHT_GREEN)
+    
+    def set_assistant_name(self, name: str):
+        """Set assistant name"""
+        old_name = self.assistant_name
+        self.assistant_name = name
+        self.safe_print(f"✅ AI đã đổi tên từ '{old_name}' thành '{name}'", Colors.BRIGHT_GREEN)
     
     def show_goodbye(self):
         """Show goodbye message"""
