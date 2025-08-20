@@ -14,7 +14,7 @@ from utils.hot_reload import HotReloader
 
 def main():
     """Main development runner"""
-    print("🔥 AI Assistant - Development Mode with Hot-Reload")
+    print("AI Assistant - Development Mode with Hot-Reload")
     print("=" * 60)
     
     # Script to run

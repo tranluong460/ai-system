@@ -4,7 +4,7 @@ Autonomous AI Engine - Self-coding and self-executing AI system
 import re
 import sys
 import os
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils.error_handler import ErrorHandler, safe_operation
 from assistant.feedback_processor import FeedbackProcessor
@@ -81,8 +81,9 @@ class AutonomousEngine:
         
         return ai_response
     
-    def _build_autonomous_prompt(self, user_input: str) -> str:
+    def _build_autonomous_prompt(self, user_input: str, guidance: Dict[str, Any] = None) -> str:
         """Build intelligent prompt based on request type and user preferences"""
+        guidance = guidance or {}
         
         working_dir = self.context_info.get('working_directory', os.getcwd())
         last_file = self.context_info.get('last_file_path', 'None')
@@ -90,8 +91,15 @@ class AutonomousEngine:
         # Analyze request type
         request_type = self._analyze_request_type(user_input)
         
+        # Get style preferences from guidance
+        preferred_style = guidance.get('preferred_style', {})
+        recommendations = guidance.get('recommendations', [])
+        avoid_issues = guidance.get('avoid', [])
+        
         # Build context-aware prompt based on request type
         if request_type == 'simple_question':
+            style_instructions = self._build_style_instructions(preferred_style, recommendations, avoid_issues)
+            
             return f"""User question: "{user_input}"
             
 You are a helpful AI assistant. Provide a DIRECT, CONCISE answer.
@@ -101,6 +109,8 @@ IMPORTANT:
 - For "where is" questions → answer location directly
 - For "what time" → show time immediately
 - Keep responses under 2 sentences unless more detail is explicitly requested
+
+{style_instructions}
 
 Context: Working directory: {working_dir}
 
@@ -267,10 +277,64 @@ Brief result explanation."""
         """Add a safe module to the execution environment"""
         self.execution_globals[module_name] = module_obj
     
+    def _build_style_instructions(self, preferred_style: Dict[str, Any], 
+                                 recommendations: List[str], avoid_issues: List[str]) -> str:
+        """Build style instructions based on learned preferences"""
+        instructions = []
+        
+        # Length preferences
+        if preferred_style.get('response_length') == 'short':
+            instructions.append("- Keep response concise (under 50 words)")
+        elif preferred_style.get('response_length') == 'long':
+            instructions.append("- Provide detailed explanation")
+        
+        # Technical detail preferences  
+        if preferred_style.get('technical_detail') == 'low':
+            instructions.append("- Minimize technical jargon")
+        elif preferred_style.get('technical_detail') == 'high':
+            instructions.append("- Include technical details and explanations")
+        
+        # Code explanation preferences
+        if preferred_style.get('code_explanation') == 'none':
+            instructions.append("- Show code results only, no explanation")
+        elif preferred_style.get('code_explanation') == 'detailed':
+            instructions.append("- Explain code step by step")
+        
+        # Add specific recommendations
+        for rec in recommendations:
+            instructions.append(f"- {rec}")
+        
+        # Add things to avoid
+        for avoid in avoid_issues:
+            if avoid == 'too_long':
+                instructions.append("- AVOID lengthy responses")
+            elif avoid == 'code_error':
+                instructions.append("- ENSURE code is syntactically correct")
+            elif avoid == 'wrong_answer':
+                instructions.append("- VERIFY answer accuracy before responding")
+        
+        if instructions:
+            return "LEARNED PREFERENCES:\\n" + "\\n".join(instructions) + "\\n"
+        return ""
+    
+    def record_feedback(self, user_input: str, ai_response: str, rating: int, comment: str = ""):
+        """Record feedback for learning"""
+        self.feedback_processor.record_feedback(user_input, ai_response, rating, comment)
+    
+    def get_learning_stats(self) -> Dict[str, Any]:
+        """Get learning statistics"""
+        return self.feedback_processor.get_feedback_stats()
+    
     def get_execution_stats(self) -> Dict[str, Any]:
         """Get execution statistics"""
-        return {
+        base_stats = {
             "available_modules": list(self.execution_globals.keys()),
             "context_info": self.context_info,
             "safety_enabled": True
         }
+        
+        # Add learning stats
+        learning_stats = self.get_learning_stats()
+        base_stats.update(learning_stats)
+        
+        return base_stats
