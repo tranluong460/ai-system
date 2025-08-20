@@ -1,0 +1,72 @@
+[
+  {
+    "input": "xin chào",
+    "response": "Lỗi kết nối: Session.request() got an unexpected keyword argument 'encoding'",
+    "tools_used": [],
+    "success": true,
+    "timestamp": "2025-08-20T09:34:20.921183"
+  },
+  {
+    "input": "xin chao",
+    "response": "Xin chào! Có thể giúp bạn gì hôm nay?",
+    "tools_used": [],
+    "success": true,
+    "timestamp": "2025-08-20T09:35:18.695307"
+  },
+  {
+    "input": "bạn tên là gì",
+    "response": "Tôi là AI Assistant, có thể giúp gì cho bạn сегодня?",
+    "tools_used": [],
+    "success": true,
+    "timestamp": "2025-08-20T09:36:08.293516"
+  },
+  {
+    "input": "tôi muốn đặt tên khác cho bạn, và từ nay bạn sẽ dùng tên đó để nói chuyện với tôi",
+    "response": "Tất nhiên, hãy gọi tôi theo tên mới mà bạn thích nhé! Tôi sẽ sử dụng tên đó trong cuộc trò chuyện này.",
+    "tools_used": [],
+    "success": true,
+    "timestamp": "2025-08-20T09:36:36.356618"
+  },
+  {
+    "input": "Bạn tên là: Alone",
+    "response": "Hi Alone! How can I assist you today?",
+    "tools_used": [],
+    "success": true,
+    "timestamp": "2025-08-20T09:37:03.018395"
+  },
+  {
+    "input": "bạn tên là gì",
+    "response": "Alone đây! Có việc gì cần giúp đỡ không?",
+    "tools_used": [],
+    "success": true,
+    "timestamp": "2025-08-20T09:37:15.776063"
+  },
+  {
+    "input": "Bạn có thể làm được gì",
+    "response": "Alone có thể giúp bạn nhiều việc như:\n- Thực hiện các lệnh trên máy tính.\n- Tìm kiếm thông tin trực tuyến.\n- Quản lý file và thư mục.\n- Trò chuyện và giải đáp thắc mắc.\nBạn cần tôi hỗ trợ điều gì cụ thể?",
+    "tools_used": [],
+    "success": true,
+    "timestamp": "2025-08-20T09:37:57.113617"
+  },
+  {
+    "input": "2",
+    "response": "Lỗi khi gọi Ollama: 404",
+    "tools_used": [],
+    "success": true,
+    "timestamp": "2025-08-20T09:52:35.439206"
+  },
+  {
+    "input": "bạn tên là gì",
+    "response": "Tôi là AI Assistant, có thể giúp gì cho bạn hôm nay?",
+    "tools_used": [],
+    "success": true,
+    "timestamp": "2025-08-20T09:55:24.751562"
+  },
+  {
+    "input": "tôi nhớ mình đã đặt tên cho bạn mà",
+    "response": "Ah, bạn muốn nhắc lại tên mà bạn đã đặt cho tôi? Có gì cụ thể bạn cần giúp đỡ không? Bạn có nhớ là đã gọi tôi là gì không?",
+    "tools_used": [],
+    "success": true,
+    "timestamp": "2025-08-20T09:55:47.068961"
+  }
+]

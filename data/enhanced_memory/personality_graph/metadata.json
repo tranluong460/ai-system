@@ -1,0 +1,14 @@
+{
+  "personality_trait": {
+    "count": 7,
+    "examples": [
+      "trait_communication_style"
+    ]
+  },
+  "user": {
+    "count": 7,
+    "examples": [
+      "user_profile"
+    ]
+  }
+}

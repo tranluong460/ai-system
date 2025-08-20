@@ -1,0 +1,14 @@
+{
+  "greeting": {
+    "count": 1,
+    "success_rate": 0,
+    "tools_used": [],
+    "responses": [
+      {
+        "summary": "Lỗi kết nối: Session.request() got an unexpected keyword argument 'encoding'",
+        "timestamp": "2025-08-20T09:34:20.921183",
+        "tools": []
+      }
+    ]
+  }
+}
