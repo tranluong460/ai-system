@@ -4,7 +4,10 @@ Unified response management for AI Assistant
 import time
 from typing import Dict, Any, List, Optional
 from dataclasses import dataclass
-from ..utils.error_handler import ErrorHandler
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from utils.error_handler import ErrorHandler
 
 @dataclass
 class ResponseMetadata:

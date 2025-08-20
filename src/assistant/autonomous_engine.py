@@ -5,7 +5,8 @@ import re
 import sys
 import os
 from typing import Dict, Any, Optional
-from ..utils.error_handler import ErrorHandler, safe_operation
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from utils.error_handler import ErrorHandler, safe_operation
 
 class AutonomousEngine:
     """AI engine that can write and execute code autonomously"""
@@ -81,7 +82,7 @@ class AutonomousEngine:
         working_dir = self.context_info.get('working_directory', os.getcwd())
         last_file = self.context_info.get('last_file_path', 'None')
         
-        return f\"\"\"Bạn là AI Assistant với khả năng TỰ ĐỘNG viết code và thực hiện tác vụ.
+        return f"""Bạn là AI Assistant với khả năng TỰ ĐỘNG viết code và thực hiện tác vụ.
 
 User request: "{user_input}"
 
@@ -106,13 +107,13 @@ print("Kết quả thực hiện")
 
 Sau đó giải thích ngắn gọn về những gì code đã làm.
 
-QUAN TRỌNG: Hãy THỰC SỰ THỰC HIỆN bằng code, không chỉ mô tả!\"\"\"
+QUAN TRỌNG: Hãy THỰC SỰ THỰC HIỆN bằng code, không chỉ mô tả!"""
     
     def _extract_and_execute_code(self, ai_response: str) -> str:
         """Extract Python code blocks and execute them safely"""
         
         # Find all Python code blocks
-        code_blocks = re.findall(r'```python\\n(.*?)\\n```', ai_response, re.DOTALL)
+        code_blocks = re.findall(r'```python\n(.*?)\n```', ai_response, re.DOTALL)
         
         execution_results = []
         
@@ -122,7 +123,7 @@ QUAN TRỌNG: Hãy THỰC SỰ THỰC HIỆN bằng code, không chỉ mô tả!
                 self.error_handler.log_user_action(f"code_execution_{i}", code[:100])
                 
                 print(f"🤖 AI executing code block {i+1}:")
-                print(f"```python\\n{code}\\n```")
+                print(f"```python\n{code}\n```")
                 
                 # Capture output
                 from io import StringIO
@@ -149,7 +150,7 @@ QUAN TRỌNG: Hãy THỰC SỰ THỰC HIỆN bằng code, không chỉ mô tả!
                 print(f"❌ Code execution error: {e}")
                 self.error_handler.logger.error(f"Code execution failed: {e}")
         
-        return "\\n".join(execution_results) if execution_results else ""
+        return "\n".join(execution_results) if execution_results else ""
     
     def update_context(self, **kwargs):
         """Update context information"""
