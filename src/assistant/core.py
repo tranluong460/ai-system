@@ -104,7 +104,9 @@ class AIAssistant:
             try:
                 with open(self.profile_file, 'r', encoding='utf-8') as f:
                     data = json.load(f)
-                return UserProfile(**data)
+                # Remove assistant_name from data before creating UserProfile
+                profile_data = {k: v for k, v in data.items() if k != 'assistant_name'}
+                return UserProfile(**profile_data)
             except Exception as e:
                 print(f"Loi load profile: {e}")
         return UserProfile()

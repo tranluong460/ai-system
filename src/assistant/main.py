@@ -63,13 +63,21 @@ class SmartAssistant:
         if not self.is_hot_reload:
             safe_print("🤖 Khoi tao AI Assistant...", "Khoi tao AI Assistant...")
         
-        # Khởi tạo UI
-        self.ui = ModernChatUI()
-        
-        # Khởi tạo các component
+        # Khởi tạo các component AI trước
         self.ai_core = AIAssistant(model_name)
         self.tool_executor = ToolExecutor()
         self.learning_system = LearningSystem()
+        
+        # Khởi tạo UI với tên đã load từ AI core
+        assistant_name = self.ai_core.get_assistant_name()
+        user_name = self.ai_core.user_profile.name if self.ai_core.user_profile.name != "User" else "Người dùng"
+        
+        # Debug: hiển thị tên đã load
+        if not self.is_hot_reload:
+            print(f"Loaded user name: '{self.ai_core.user_profile.name}' -> Display as: '{user_name}'")
+            print(f"Loaded assistant name: '{assistant_name}'")
+        
+        self.ui = ModernChatUI(user_name=user_name, assistant_name=assistant_name)
         
         # Kiểm tra kết nối
         if not self.ai_core.check_ollama_connection():
@@ -81,13 +89,6 @@ class SmartAssistant:
         
         if not self.is_hot_reload:
             safe_print("✅ AI Assistant san sang!", "AI Assistant san sang!")
-        
-        # Set user name if available
-        if self.ai_core.user_profile.name != "User":
-            self.ui.set_user_name(self.ai_core.user_profile.name)
-        
-        # Set assistant name from AI core
-        self.ui.set_assistant_name(self.ai_core.get_assistant_name())
     
     def _show_welcome(self):
         """Hiển thị welcome screen với UI mới"""
