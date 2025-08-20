@@ -1,1 +1,120 @@
-data
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environment
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+.venv/
+
+# AI Data & Memory (Personal/Sensitive)
+data/
+logs/
+*.log
+
+# Models & Cache
+models/
+cache/
+*.pkl
+*.model
+*.weights
+*.h5
+*.pt
+*.pth
+*.safetensors
+
+# Configuration (may contain API keys)
+config/local_config.yaml
+config/secrets.yaml
+config/api_keys.yaml
+.env
+.env.local
+
+# Jupyter Notebooks checkpoints
+.ipynb_checkpoints/
+*.ipynb
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+temp/
+tmp/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Vector Database
+chroma_db/
+vector_store/
+embeddings/
+
+# Experiment outputs
+experiments/
+outputs/
+results/
+wandb/
+mlruns/
+
+# Coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# Ollama specific
+.ollama/
+
+# User specific files (contains personal data)
+user_profile.json
+conversations.json
+learning_data.json
