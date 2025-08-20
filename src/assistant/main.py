@@ -97,8 +97,8 @@ class SmartAssistant:
         self.ui = ModernChatUI(user_name=user_name, assistant_name=assistant_name)
         
         # Initialize specialized handlers
-        self.command_handler = CommandHandler(self.ui, self.ai_core, self.tool_executor, self.learning_system)
         self.autonomous_engine = AutonomousEngine(self.ai_core)
+        self.command_handler = CommandHandler(self.ui, self.ai_core, self.tool_executor, self.learning_system, self.autonomous_engine)
         self.response_manager = ResponseManager(self.ui, self.ai_core, self.learning_system)
     
     def _check_ollama_connection(self):

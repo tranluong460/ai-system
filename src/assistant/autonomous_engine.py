@@ -61,10 +61,13 @@ class AutonomousEngine:
     
     @safe_operation("autonomous action")
     def execute_autonomous_action(self, user_input: str) -> str:
-        """Main autonomous action executor"""
+        """Main autonomous action executor with feedback-driven improvements"""
         
-        # Build enhanced prompt for autonomous AI
-        prompt = self._build_autonomous_prompt(user_input)
+        # Get response guidance from previous feedback
+        guidance = self.feedback_processor.get_response_guidance(user_input)
+        
+        # Build enhanced prompt for autonomous AI with guidance
+        prompt = self._build_autonomous_prompt(user_input, guidance)
         
         # Get AI response
         ai_response = self.ai_core.chat(prompt)

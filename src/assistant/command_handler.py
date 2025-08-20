@@ -11,11 +11,12 @@ class CommandHandler:
     """Handles special commands and system operations"""
     
     def __init__(self, ui: ModernChatUI, ai_core: AIAssistant, 
-                 tool_executor: ToolExecutor, learning_system: LearningSystem):
+                 tool_executor: ToolExecutor, learning_system: LearningSystem, autonomous_engine=None):
         self.ui = ui
         self.ai_core = ai_core
         self.tool_executor = tool_executor
         self.learning_system = learning_system
+        self.autonomous_engine = autonomous_engine
     
     def handle_command(self, user_input: str) -> Optional[bool]:
         """
@@ -84,16 +85,29 @@ class CommandHandler:
         return True
     
     def _handle_feedback(self, feedback_text: str):
-        """Handle user feedback"""
+        """Handle user feedback and send to autonomous engine"""
         parts = feedback_text.split(' ', 1)
         try:
             rating = int(parts[0])
             comment = parts[1] if len(parts) > 1 else ""
             
             if 1 <= rating <= 5:
-                self.ai_core.learn_from_feedback(comment, rating)
-                self.learning_system.record_feedback(rating, comment)
-                self.ui.display_success(f"Cảm ơn feedback! Rating: {rating}/5")
+                # Get last conversation for feedback context
+                if hasattr(self.ai_core, 'conversations') and self.ai_core.conversations:
+                    last_conv = self.ai_core.conversations[-1]
+                    user_input = last_conv.user_input
+                    ai_response = last_conv.ai_response
+                    
+                    # Send feedback to autonomous engine if available
+                    if self.autonomous_engine:
+                        self.autonomous_engine.record_feedback(user_input, ai_response, rating, comment)
+                    
+                    # Original feedback handling
+                    self.ai_core.learn_from_feedback(comment, rating)
+                    self.learning_system.record_feedback(rating, comment)
+                    self.ui.display_success(f"Cảm ơn feedback! Rating: {rating}/5")
+                else:
+                    self.ui.display_error("Không có conversation để feedback")
             else:
                 self.ui.display_error("Rating phải từ 1-5")
         except ValueError:
