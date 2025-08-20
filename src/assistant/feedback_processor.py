@@ -93,6 +93,10 @@ class FeedbackProcessor:
     
     def _analyze_response(self, ai_response: str) -> Dict[str, Any]:
         """Analyze AI response characteristics"""
+        # Ensure ai_response is string
+        if not isinstance(ai_response, str):
+            ai_response = str(ai_response)
+        
         analysis = {
             "length": len(ai_response),
             "word_count": len(ai_response.split()),
@@ -115,6 +119,10 @@ class FeedbackProcessor:
     
     def _analyze_user_input(self, user_input: str) -> Dict[str, Any]:
         """Analyze user input to understand intent"""
+        # Ensure user_input is string
+        if not isinstance(user_input, str):
+            user_input = str(user_input)
+            
         analysis = {
             "length": len(user_input),
             "word_count": len(user_input.split()),
