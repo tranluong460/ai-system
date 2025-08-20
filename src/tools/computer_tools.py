@@ -45,12 +45,16 @@ class ComputerTools:
         except Exception as e:
             return {"success": False, "message": str(e)}
     
-    def list_files(self, path: str = ".", pattern: str = "*") -> List[Dict[str, Any]]:
+    def list_files(self, path: str = ".", pattern: str = "*") -> Dict[str, Any]:
         """Liệt kê files trong thư mục"""
         try:
             path_obj = Path(path)
             if not path_obj.exists():
-                return []
+                return {
+                    "success": False, 
+                    "message": f"Đường dẫn không tồn tại: {path}",
+                    "files": []
+                }
             
             files = []
             for item in path_obj.glob(pattern):
@@ -63,9 +67,21 @@ class ComputerTools:
                     "modified": stat.st_mtime
                 })
             
-            return sorted(files, key=lambda x: (not x["is_dir"], x["name"]))
+            sorted_files = sorted(files, key=lambda x: (not x["is_dir"], x["name"]))
+            
+            return {
+                "success": True,
+                "message": f"Tìm thấy {len(sorted_files)} items trong {path}",
+                "path": path,
+                "files": sorted_files,
+                "count": len(sorted_files)
+            }
         except Exception as e:
-            return [{"error": str(e)}]
+            return {
+                "success": False, 
+                "message": f"Lỗi liệt kê files: {str(e)}",
+                "files": []
+            }
     
     def create_folder(self, path: str) -> Dict[str, Any]:
         """Tạo thư mục"""
@@ -136,6 +152,128 @@ class ComputerTools:
             }
         except Exception as e:
             return {"success": False, "message": str(e)}
+    
+    def create_file(self, path: str, content: str = "") -> Dict[str, Any]:
+        """Tạo file mới với nội dung thông minh"""
+        try:
+            # Clean and validate path
+            path = path.strip().replace('"', '').replace("'", "")
+            
+            # Check for invalid characters in filename
+            import re
+            if re.search(r'[<>:"|?*]', Path(path).name):
+                return {"success": False, "message": f"Tên file chứa ký tự không hợp lệ: {Path(path).name}"}
+            
+            # Check if file already exists
+            if Path(path).exists():
+                return {"success": False, "message": f"File {path} đã tồn tại"}
+            
+            # Create parent directories if needed
+            try:
+                Path(path).parent.mkdir(parents=True, exist_ok=True)
+            except Exception as e:
+                return {"success": False, "message": f"Không thể tạo thư mục: {e}"}
+            
+            # Auto-generate content if empty
+            if not content:
+                content = self._generate_default_content(path)
+            
+            # Create the file
+            with open(path, 'w', encoding='utf-8') as f:
+                f.write(content)
+            
+            return {
+                "success": True, 
+                "message": f"✅ Đã tạo file: {path} ({len(content)} chars)",
+                "path": path,
+                "size": len(content),
+                "content_preview": content[:100] + "..." if len(content) > 100 else content
+            }
+        except Exception as e:
+            return {"success": False, "message": f"❌ Lỗi tạo file: {str(e)}"}
+    
+    def _generate_default_content(self, path: str) -> str:
+        """Tự động tạo nội dung mẫu dựa vào extension"""
+        import datetime
+        from pathlib import Path
+        
+        filename = Path(path).name
+        extension = Path(path).suffix.lower()
+        current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        
+        templates = {
+            '.txt': f"""Đây là file text được tạo bởi AI Assistant.
+
+File: {filename}
+Ngày tạo: {current_time}
+Mục đích: File test và demo
+
+Bạn có thể chỉnh sửa nội dung này tùy ý.
+""",
+            '.py': f"""#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+\"\"\"
+{filename}
+Created by AI Assistant on {current_time}
+\"\"\"
+
+def main():
+    \"\"\"Main function\"\"\"
+    print("Hello from {filename}!")
+
+if __name__ == "__main__":
+    main()
+""",
+            '.js': f"""/**
+ * {filename}
+ * Created by AI Assistant on {current_time}
+ */
+
+console.log("Hello from {filename}!");
+
+// Your code here
+""",
+            '.html': f"""<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{Path(path).stem}</title>
+</head>
+<body>
+    <h1>Hello from {filename}!</h1>
+    <p>Created by AI Assistant on {current_time}</p>
+</body>
+</html>
+""",
+            '.md': f"""# {Path(path).stem}
+
+Tạo bởi AI Assistant vào {current_time}
+
+## Mô tả
+
+File markdown mẫu.
+
+## Nội dung
+
+- Item 1
+- Item 2
+- Item 3
+""",
+            '.json': """{
+    "name": "example",
+    "version": "1.0.0",
+    "description": "File JSON được tạo bởi AI Assistant",
+    "created": "%s"
+}""" % current_time
+        }
+        
+        return templates.get(extension, f"""File: {filename}
+Created by AI Assistant
+Date: {current_time}
+
+This is a sample file. You can edit this content as needed.
+""")
     
     def write_file(self, path: str, content: str, encoding: str = "utf-8") -> Dict[str, Any]:
         """Ghi file"""
@@ -277,6 +415,7 @@ class ToolExecutor:
         self.tool_mapping = {
             # File operations
             "list": self.tools.list_files,
+            "create_file": self.tools.create_file,
             "create_folder": self.tools.create_folder,
             "copy": self.tools.copy_file,
             "move": self.tools.move_file,

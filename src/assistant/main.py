@@ -60,6 +60,9 @@ class SmartAssistant:
         # Check if running in hot-reload mode
         self.is_hot_reload = '--hot-reload' in sys.argv or os.environ.get('HOT_RELOAD_MODE') == '1'
         
+        # Remember last file operation for context
+        self.last_file_path = None
+        
         if not self.is_hot_reload:
             safe_print("🤖 Khoi tao AI Assistant...", "Khoi tao AI Assistant...")
         
@@ -94,54 +97,146 @@ class SmartAssistant:
         """Hiển thị welcome screen với UI mới"""
         self.ui.show_welcome_screen()
     
-    def _detect_tool_request(self, user_input: str) -> Dict[str, Any]:
-        """Phát hiện yêu cầu sử dụng tool"""
-        user_lower = user_input.lower()
+    
+    def _ai_detect_tool_request(self, user_input: str) -> Dict[str, Any]:
+        """AI-driven tool detection - hiểu ngôn ngữ tự nhiên hoàn toàn"""
         
-        # Patterns cho các tools
-        tool_patterns = {
-            # File operations
-            r'(liệt kê|list|xem).*(file|tệp|thư mục)': ('list', {'path': '.'}),
-            r'(tạo|tạo mới|create).*(thư mục|folder)\s+(.+)': ('create_folder', 'path_from_match'),
-            r'(copy|sao chép).*(file|tệp)\s+(.+)\s+(to|đến|sang)\s+(.+)': ('copy', 'src_dst_from_match'),
-            r'(move|di chuyển|chuyển).*(file|tệp)\s+(.+)\s+(to|đến|sang)\s+(.+)': ('move', 'src_dst_from_match'),
-            r'(delete|xóa|remove).*(file|tệp|thư mục)\s+(.+)': ('delete', 'path_from_match'),
-            r'(đọc|read|xem).*(file|tệp)\s+(.+)': ('read', 'path_from_match'),
-            r'(tìm|search|find).*(file|tệp)\s+(.+)': ('search', 'query_from_match'),
+        detection_prompt = f"""
+Bạn là AI assistant có khả năng thực hiện các thao tác hệ thống. Phân tích yêu cầu của user và quyết định có cần tool không.
+
+User request: "{user_input}"
+
+Context: 
+- Last file operation: {self.last_file_path or 'None'}
+- Current working directory: D:\\MKT\\mkt-uid-2025\\libs\\data
+
+Available tools và cách dùng:
+1. create_file(path, content): tạo file mới với nội dung
+2. create_folder(path): tạo thư mục
+3. list(path): liệt kê files trong thư mục
+4. read(path): đọc nội dung file
+5. delete(path): xóa file/folder
+6. copy(src, dst): copy file
+7. move(src, dst): di chuyển file
+8. system_info(): thông tin hệ thống
+9. processes(): danh sách tiến trình
+10. weather(city): thời tiết
+
+QUAN TRỌNG: Khi tạo file, luôn thêm nội dung mẫu phù hợp:
+- File .txt → thêm text mô tả
+- File .py → thêm Python code template
+- File .js → thêm JavaScript template
+- File khác → thêm comment giải thích
+
+Nếu user muốn thực hiện thao tác → trả về JSON:
+{{"tool": "tool_name", "params": {{"key": "value"}}}}
+
+Nếu chỉ chat thông thường → trả về: null
+
+Hãy hiểu ý định thực sự của user và đưa ra quyết định thông minh.
+
+Examples:
+- "tạo file test.txt trong D:\\data" → {{"tool": "create_file", "params": {{"path": "D:\\\\data\\\\test.txt", "content": "Đây là file test được tạo bởi AI Assistant.\\nFile này dùng để test chức năng tạo file.\\n\\nNgày tạo: $(date)"}}}}
+- "tạo file main.py" → {{"tool": "create_file", "params": {{"path": "main.py", "content": "#!/usr/bin/env python3\\n# -*- coding: utf-8 -*-\\n\\\"\\\"\\\"\\nMain Python script\\nCreated by AI Assistant\\n\\\"\\\"\\\"\\n\\nif __name__ == '__main__':\\n    print('Hello World!')"}}}}
+- "liệt kê file" → {{"tool": "list", "params": {{"path": "."}}}}
+- "xin chào" → null
+"""
+        
+        try:
+            response = self.ai_core.chat(detection_prompt)
+            response = response.strip()
             
-            # System operations
-            r'(thông tin|info).*(hệ thống|system)': ('system_info', {}),
-            r'(process|tiến trình).*(đang chạy|running)': ('processes', {}),
-            r'(thời tiết|weather)(?:\s+(.+))?': ('weather', 'city_from_match'),
-            r'(mở|open).*(ứng dụng|app)\s+(.+)': ('open', 'app_from_match'),
-            r'(chạy|run|thực hiện).*(lệnh|command)\s+(.+)': ('command', 'cmd_from_match'),
-        }
+            if response.lower() in ['null', 'none', '']:
+                return None
+            
+            # Extract JSON from response (AI might include extra text)
+            import json
+            import re
+            
+            # Try to find JSON in response
+            json_match = re.search(r'\{.*\}', response, re.DOTALL)
+            if json_match:
+                json_str = json_match.group()
+                result = json.loads(json_str)
+                
+                # Validate result structure
+                if 'tool' in result and 'params' in result:
+                    # Check if tool exists
+                    available_tools = self.tool_executor.get_available_tools()
+                    if result['tool'] in available_tools:
+                        print(f"🤖 AI detected: {result}")
+                        return result
+                    else:
+                        print(f"❌ Unknown tool: {result['tool']}")
+                        return None
+            
+            return None
+        except Exception as e:
+            print(f"❌ AI detection error: {e}")
+            return None
+    
+    def _ai_autonomous_action(self, user_input: str) -> str:
+        """AI hoàn toàn tự chủ - tự code và thực hiện mọi thứ"""
         
-        for pattern, (tool_name, params) in tool_patterns.items():
-            match = re.search(pattern, user_lower)
-            if match:
-                # Xử lý parameters
-                if params == {}:
-                    return {'tool': tool_name, 'params': {}}
-                elif params == 'path_from_match':
-                    return {'tool': tool_name, 'params': {'path': match.group(3).strip()}}
-                elif params == 'query_from_match':
-                    return {'tool': tool_name, 'params': {'query': match.group(3).strip()}}
-                elif params == 'city_from_match':
-                    city = match.group(2).strip() if match.group(2) else "Ho Chi Minh City"
-                    return {'tool': tool_name, 'params': {'city': city}}
-                elif params == 'app_from_match':
-                    return {'tool': tool_name, 'params': {'app_name': match.group(3).strip()}}
-                elif params == 'cmd_from_match':
-                    return {'tool': tool_name, 'params': {'command': match.group(3).strip()}}
-                elif params == 'src_dst_from_match':
-                    src = match.group(3).strip()
-                    dst = match.group(5).strip()
-                    return {'tool': tool_name, 'params': {'src': src, 'dst': dst}}
-                elif isinstance(params, dict):
-                    return {'tool': tool_name, 'params': params}
+        autonomous_prompt = f"""
+Bạn là AI Assistant có khả năng TỰ ĐỘNG viết code và thực hiện bất kỳ tác vụ nào.
+
+User request: "{user_input}"
+
+Context:
+- Working directory: D:\\MKT\\mkt-uid-2025\\libs\\data
+- Previous file: {self.last_file_path or 'None'}
+- Available: Python, file system, system commands
+
+IMPORTANT: Thay vì chỉ mô tả, hãy THỰC SỰ THỰC HIỆN:
+
+1. Nếu user muốn tạo file → VIẾT CODE Python và CHẠY để tạo file
+2. Nếu user muốn xem file → VIẾT CODE Python và CHẠY để đọc file  
+3. Nếu user muốn system info → VIẾT CODE Python và CHẠY để lấy thông tin
+4. Bất kỳ request nào → TỰ ĐỘNG viết code phù hợp và thực hiện
+
+Format response:
+```python
+# Code để thực hiện request
+import os
+# ... your code here
+```
+
+Kết quả: [mô tả kết quả sau khi chạy code]
+
+Hãy THỰC SỰ LÀM, không chỉ nói!
+"""
         
-        return None
+        try:
+            response = self.ai_core.chat(autonomous_prompt)
+            
+            # Extract và execute Python code từ response
+            self._extract_and_execute_code(response)
+            
+            return response
+            
+        except Exception as e:
+            return f"Lỗi autonomous action: {e}"
+    
+    def _extract_and_execute_code(self, ai_response: str):
+        """Extract Python code từ AI response và execute"""
+        import re
+        
+        # Find Python code blocks
+        code_blocks = re.findall(r'```python\n(.*?)\n```', ai_response, re.DOTALL)
+        
+        for code in code_blocks:
+            try:
+                print(f"🤖 AI executing code:")
+                print(f"```python\n{code}\n```")
+                
+                # Execute the code
+                exec(code)
+                
+                print("✅ Code executed successfully")
+                
+            except Exception as e:
+                print(f"❌ Code execution error: {e}")
     
     def _execute_tool_and_respond(self, tool_request: Dict[str, Any], user_input: str) -> str:
         """Thực hiện tool và tạo response"""
@@ -340,25 +435,17 @@ So thich:
                 # Lấy suggestions từ learning system
                 suggestions = self.learning_system.get_suggestions(user_input)
                 
-                # Phát hiện tool request
-                tool_request = self._detect_tool_request(user_input)
-                
+                # AI tự động xử lý request - hoàn toàn autonomous
+                response = self._ai_autonomous_action(user_input)
                 tools_used = []
-                if tool_request:
-                    # Thực hiện tool
-                    response = self._execute_tool_and_respond(tool_request, user_input)
-                    tools_used = [tool_request['tool']]
-                else:
-                    # Chat thông thường
-                    response = self.ai_core.chat(user_input)
-                    
-                    # Lưu vào learning system
-                    self.learning_system.learn_from_interaction(
-                        user_input=user_input,
-                        ai_response=response,
-                        tools_used=[],
-                        success=True
-                    )
+                
+                # Lưu vào learning system
+                self.learning_system.learn_from_interaction(
+                    user_input=user_input,
+                    ai_response=response,
+                    tools_used=[],
+                    success=True
+                )
                 
                 processing_time = time.time() - start_time
                 
